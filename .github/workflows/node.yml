@@ -1,0 +1,40 @@
+name: NodeJS CI
+on:
+  workflow_call:
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint commits
+        uses: wagoid/commitlint-github-action@v5
+
+      - name: Lint code
+        run: npm run lint --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Test
+        run: npm test --if-present
+
+      - name: Semantic release
+        run: npx semantic-release
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          HUSKY: 0
