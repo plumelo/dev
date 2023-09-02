@@ -14,6 +14,7 @@
             python3
             ripgrep
             bc
+            prefetch-npm-deps
           ];
           env = ''
             export PATH=$PATH:node_modules/.bin
