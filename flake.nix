@@ -15,6 +15,7 @@
             ripgrep
             bc
             prefetch-npm-deps
+            jq
           ];
           env = ''
             export PATH=$PATH:node_modules/.bin
