@@ -6,7 +6,7 @@
   };
   outputs = { self, nixpkgs, flake-utils, }:
     {
-      lib.shell = pkgs: extraDeps:
+      lib.shell = { pkgs, extraDeps ? [ ] }:
         let
           deps = with pkgs; [
             nodejs_latest
