@@ -6,7 +6,7 @@
   };
   outputs = { self, nixpkgs, flake-utils, }:
     {
-      lib.shell = pkgs:
+      lib.shell = pkgs: extraDeps:
         let
           deps = with pkgs; [
             nodejs_latest
@@ -16,7 +16,7 @@
             bc
             prefetch-npm-deps
             jq
-          ];
+          ] ++ extraDeps;
           env = ''
             export PATH=$PATH:node_modules/.bin
             export NIXPKGS_ALLOW_UNFREE=1
