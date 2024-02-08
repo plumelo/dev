@@ -57,7 +57,7 @@
         pkgs = import nixpkgs { inherit system; };
       in
       rec {
-        devShell = self.lib.shell pkgs;
+        devShell = self.lib.shell { inherit pkgs; };
         packages = { patch-playwright = self.lib.patch-playwright pkgs; };
       }
     );
