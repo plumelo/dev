@@ -50,6 +50,43 @@
         done
         ${patchelf}/bin/patchelf --set-interpreter "$interpr" $path/ffmpeg-*/ffmpeg-linux
       '';
+      lib.podmanShell = { pkgs }:
+        let
+          podmanSetupScript =
+            let
+              registriesConf = pkgs.writeText "registries.conf" ''
+                [registries.search]
+                registries = ['docker.io']
+
+                [registries.block]
+                registries = []
+              '';
+            in
+            pkgs.writeScript "podman-setup" ''
+              #!${pkgs.runtimeShell}
+              if ! test -f ~/.config/containers/policy.json; then
+                install -Dm555 ${pkgs.skopeo.src}/default-policy.json ~/.config/containers/policy.json
+              fi
+
+              if ! test -f ~/.config/containers/registries.conf; then
+                install -Dm555 ${registriesConf} ~/.config/containers/registries.conf
+              fi
+            '';
+
+        in
+        pkgs.mkShell {
+          buildInputs = with pkgs; [
+            podman
+            runc
+            conmon
+            skopeo
+            slirp4netns
+            fuse-overlayfs
+          ];
+          shellHook = ''
+            ${podmanSetupScript}
+          '';
+        };
     }
     //
     flake-utils.lib.eachDefaultSystem (system:
@@ -58,6 +95,7 @@
       in
       rec {
         devShell = self.lib.shell { inherit pkgs; };
+        devShells.podmanShell = self.lib.podmanShell { inherit pkgs; };
         packages = { patch-playwright = self.lib.patch-playwright pkgs; };
       }
     );
