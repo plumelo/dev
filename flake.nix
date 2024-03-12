@@ -9,7 +9,7 @@
       lib.shell = { pkgs, extraDeps ? [ ] }:
         let
           deps = with pkgs; [
-            nodejs_latest
+            nodejs_20
             nodePackages_latest.typescript-language-server
             python3
             ripgrep
@@ -56,7 +56,7 @@
           targetPkgs = pkgs: [
             udev
             alsa-lib
-            nodejs_latest
+            nodejs_20
           ] ++ (with xorg;[
             libX11
             libXcursor
