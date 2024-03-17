@@ -50,75 +50,7 @@
         done
         ${patchelf}/bin/patchelf --set-interpreter "$interpr" $path/ffmpeg-*/ffmpeg-linux
       '';
-      lib.playwrightEnv = pkgs: with pkgs; (buildFHSEnv
-        {
-          name = "playwright-env";
-          targetPkgs = pkgs: [
-            udev
-            alsa-lib
-            nodejs_20
-          ] ++ (with xorg;[
-            libX11
-            libXcursor
-            libXrandr
-            libXcursor
-            libXext
-            libXfixes
-            libXrender
-            libXScrnSaver
-            libXcomposite
-            libxcb
-            libX11
-            libXi
-            libXdamage
-            libXtst
-            libXrandr
-            libxshmfence
-          ]) ++ [
-            glib
-            fontconfig
-            freetype
-            pango
-            cairo
-            atk
-            nss
-            nspr
-            alsa-lib
-            expat
-            cups
-            dbus
-            gdk-pixbuf
-            gcc-unwrapped.lib
-            systemd
-            libexif
-            pciutils
-            liberation_ttf
-            curl
-            util-linux
-            wget
-            flac
-            harfbuzz
-            icu
-            libpng
-            snappy
-            speechd
-            bzip2
-            libcap
-            at-spi2-atk
-            at-spi2-core
-            libkrb5
-            libdrm
-            libglvnd
-            mesa
-            coreutils
-            libxkbcommon
-            pipewire
-            wayland
-            gtk3
-            gtk4
-          ];
-          runScript = "bash";
-        }).env;
+      lib.playwrightEnv = pkgs: pkgs.callPackage ./env.nix {};
       lib.podmanShell = { pkgs }:
         let
           podmanSetupScript =
