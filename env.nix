@@ -13,6 +13,7 @@
 , expat
 , cups
 , dbus
+, dbus-glib
 , gdk-pixbuf
 , gcc-unwrapped
 , systemd
@@ -91,6 +92,7 @@
       expat
       cups
       dbus
+      dbus-glib
       gdk-pixbuf
       gcc-unwrapped.lib
       systemd
