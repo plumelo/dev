@@ -1,6 +1,11 @@
 { buildFHSEnv
 , nodejs_20
 , nodePackages
+, python3
+, ripgrep
+, bc
+, prefetch-npm-deps
+, jq
 , glib
 , fontconfig
 , freetype
@@ -57,15 +62,36 @@
 , libXdamage
 , libXtst
 , libxshmfence
+, extraDeps ? [ ]
 }: (buildFHSEnv
   {
-    name = "playwright-env";
+    name = "env";
+    profile = ''
+      export PATH=$PATH:node_modules/.bin
+      export NIXPKGS_ALLOW_UNFREE=1
+    '';
     targetPkgs = pkgs: [
       udev
       alsa-lib
       nodejs_20
       nodePackages.typescript-language-server
+      python3
+      ripgrep
+      bc
+      prefetch-npm-deps
+      jq
     ] ++ [
+      (pkgs.writeShellScriptBin
+        "tmux-ui"
+        ''
+          PROJECT=$(basename $(pwd))
+          tmux at -t $PROJECT || tmux new -s $PROJECT -n term \; \
+            splitw -v -p 50 \; \
+            neww -n tig \; send "tig" C-m \; \
+            neww -n nvim \; send "nvim" C-m \; \
+            selectw -t 1\; selectp -t 1 \;
+        '')
+    ] ++ extraDeps ++ [
       libX11
       libXcursor
       libXext

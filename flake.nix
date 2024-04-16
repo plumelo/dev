@@ -6,38 +6,7 @@
   };
   outputs = { self, nixpkgs, flake-utils, }:
     {
-      lib.shell = { pkgs, extraDeps ? [ ] }:
-        let
-          deps = with pkgs; [
-            nodejs_20
-            nodePackages_latest.typescript-language-server
-            python3
-            ripgrep
-            bc
-            prefetch-npm-deps
-            jq
-          ] ++ extraDeps;
-          env = ''
-            export PATH=$PATH:node_modules/.bin
-            export NIXPKGS_ALLOW_UNFREE=1
-            export XDG_DATA_DIRS=$XDG_DATA_DIRS:/etc/profiles/per-user/$USER/share
-            export SHELL=${pkgs.bashInteractive}/bin/bash
-          '';
-        in
-        pkgs.mkShell {
-          buildInputs = deps;
-          shellHook = ''
-            ${env}
-            tmux-ui() {
-              PROJECT=$(basename $(pwd))
-              tmux at -t $PROJECT || tmux new -s $PROJECT -n term \; \
-                splitw -v -p 50 \; \
-                neww -n tig \; send "tig" C-m \; \
-                neww -n nvim \; send "nvim" C-m \; \
-                selectw -t 1\; selectp -t 1 \;
-            }
-          '';
-        };
+      lib.shell = { pkgs, extraDeps ? [ ] }: pkgs.callPackage ./env.nix { inherit extraDeps; };
       lib.patch-playwright = pkgs: with pkgs; writeShellScriptBin "patch-playwright" ''
         path=''${1:-~/.cache/ms-playwright}
         interpr=$(nix eval --raw 'nixpkgs#glibc')/lib64/ld-linux-x86-64.so.2
@@ -50,7 +19,7 @@
         done
         ${patchelf}/bin/patchelf --set-interpreter "$interpr" $path/ffmpeg-*/ffmpeg-linux
       '';
-      lib.playwrightEnv = pkgs: pkgs.callPackage ./env.nix {};
+      lib.playwrightEnv = pkgs: pkgs.callPackage ./env.nix { };
       lib.podmanShell = { pkgs }:
         let
           podmanSetupScript =
