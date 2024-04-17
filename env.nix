@@ -62,6 +62,7 @@
 , libXdamage
 , libXtst
 , libxshmfence
+, lz4
 , extraDeps ? [ ]
 }: (buildFHSEnv
   {
@@ -148,5 +149,6 @@
       wayland
       gtk3
       gtk4
+      lz4
     ];
   }).env
