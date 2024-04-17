@@ -151,6 +151,6 @@
       gtk3
       gtk4
       lz4
-      libz4
+      libz
     ];
   }).env
