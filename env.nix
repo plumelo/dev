@@ -63,6 +63,7 @@
 , libXtst
 , libxshmfence
 , lz4
+, libz
 , extraDeps ? [ ]
 }: (buildFHSEnv
   {
@@ -150,5 +151,6 @@
       gtk3
       gtk4
       lz4
+      libz4
     ];
   }).env
