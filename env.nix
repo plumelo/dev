@@ -7,6 +7,7 @@
 , prefetch-npm-deps
 , jq
 , git
+, openssh
 , glib
 , fontconfig
 , freetype
@@ -84,6 +85,7 @@
       prefetch-npm-deps
       jq
       git
+      openssh
     ] ++ [
       (pkgs.writeShellScriptBin
         "tmux-ui"
