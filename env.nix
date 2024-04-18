@@ -6,6 +6,7 @@
 , bc
 , prefetch-npm-deps
 , jq
+, git
 , glib
 , fontconfig
 , freetype
@@ -82,6 +83,7 @@
       bc
       prefetch-npm-deps
       jq
+      git
     ] ++ [
       (pkgs.writeShellScriptBin
         "tmux-ui"
