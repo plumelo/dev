@@ -7,6 +7,7 @@
 , prefetch-npm-deps
 , jq
 , git
+, git-lfs
 , openssh
 , glib
 , fontconfig
@@ -85,6 +86,7 @@
       prefetch-npm-deps
       jq
       git
+      git-lfs
       openssh
     ] ++ [
       (pkgs.writeShellScriptBin
