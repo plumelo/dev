@@ -78,7 +78,7 @@
     targetPkgs = pkgs: [
       udev
       alsa-lib
-      nodejs_20
+      nodejs_22
       nodePackages.typescript-language-server
       python3
       ripgrep
