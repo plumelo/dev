@@ -1,5 +1,5 @@
 { buildFHSEnv
-, nodejs_20
+, nodejs_22
 , nodePackages
 , python3
 , ripgrep
