@@ -6,7 +6,20 @@
   };
   outputs = { self, nixpkgs, flake-utils, }:
     {
-      lib.shell = { pkgs, extraDeps ? [ ] }: pkgs.callPackage ./env.nix { inherit extraDeps; };
+      lib.shell = { pkgs, extraDeps ? [ ] }: pkgs.mkShell {
+        buildInputs = with pkgs; [
+          nodejs_22
+          nodePackages.typescript-language-server
+          ripgrep
+          git
+          git-lfs
+        ];
+        shellHook = ''
+          export PATH=$PATH:node_modules/.bin
+          export NIXPKGS_ALLOW_UNFREE=1
+        '';
+      };
+      lib.env = { pkgs, extraDeps ? [ ] }: pkgs.callPackage ./env.nix { inherit extraDeps; };
       lib.patch-playwright = pkgs: with pkgs; writeShellScriptBin "patch-playwright" ''
         path=''${1:-~/.cache/ms-playwright}
         interpr=$(nix eval --raw 'nixpkgs#glibc')/lib64/ld-linux-x86-64.so.2
@@ -65,6 +78,7 @@
       in
       rec {
         devShell = self.lib.shell { inherit pkgs; };
+        devShells.env = self.lib.env { inherit pkgs; };
         devShells.podmanShell = self.lib.podmanShell { inherit pkgs; };
         packages = {
           patch-playwright = self.lib.patch-playwright pkgs;
