@@ -74,12 +74,23 @@
     //
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
       in
       rec {
         devShell = self.lib.shell { inherit pkgs; };
         devShells.env = self.lib.env { inherit pkgs; };
         devShells.podmanShell = self.lib.podmanShell { inherit pkgs; };
+        devShells.tf = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            go
+            gopls
+            autoconf
+            golangci-lint
+            gnumake
+            dqlite
+            terraform
+          ];
+        };
         packages = {
           patch-playwright = self.lib.patch-playwright pkgs;
           playwrightEnv = self.lib.playwrightEnv pkgs;
