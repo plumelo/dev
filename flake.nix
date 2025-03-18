@@ -13,6 +13,7 @@
           ripgrep
           git
           git-lfs
+          jq
         ];
         shellHook = ''
           export PATH=$PATH:node_modules/.bin
