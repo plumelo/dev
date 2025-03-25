@@ -65,6 +65,7 @@
 , libXdamage
 , libXtst
 , libxshmfence
+, libgbm
 , lz4
 , libz
 , extraDeps ? [ ]
@@ -158,5 +159,6 @@
       gtk4
       lz4
       libz
+      libgbm
     ];
   }).env
