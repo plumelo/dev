@@ -8,13 +8,13 @@
     {
       lib.shell = { pkgs, extraDeps ? [ ] }: pkgs.mkShell {
         buildInputs = with pkgs; [
-          nodejs_22
-          nodePackages.typescript-language-server
+          nodejs_24
+          nodejs_24.pkgs.typescript-language-server
           ripgrep
           git
           git-lfs
           jq
-        ];
+        ] ++ extraDeps;
         shellHook = ''
           export PATH=$PATH:node_modules/.bin
           export NIXPKGS_ALLOW_UNFREE=1
