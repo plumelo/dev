@@ -22,11 +22,11 @@
             [
               nodejs_24
               nodejs_24.pkgs.typescript-language-server
+              nodejs_24.pkgs.jsonlint
               ripgrep
               git
               git-lfs
               jq
-              jsonlint
             ]
             ++ extraDeps;
           shellHook = ''
