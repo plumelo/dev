@@ -4,37 +4,65 @@
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
-  outputs = { self, nixpkgs, flake-utils, }:
+  outputs =
     {
-      lib.shell = { pkgs, extraDeps ? [ ] }: pkgs.mkShell {
-        buildInputs = with pkgs; [
-          nodejs_24
-          nodejs_24.pkgs.typescript-language-server
-          ripgrep
-          git
-          git-lfs
-          jq
-        ] ++ extraDeps;
-        shellHook = ''
-          export PATH=$PATH:node_modules/.bin
-          export NIXPKGS_ALLOW_UNFREE=1
+      self,
+      nixpkgs,
+      flake-utils,
+    }:
+    {
+      lib.shell =
+        {
+          pkgs,
+          extraDeps ? [ ],
+        }:
+        pkgs.mkShell {
+          buildInputs =
+            with pkgs;
+            [
+              nodejs_24
+              nodejs_24.pkgs.typescript-language-server
+              ripgrep
+              git
+              git-lfs
+              jq
+              jsonlint
+            ]
+            ++ extraDeps;
+          shellHook = ''
+            export PATH=$PATH:node_modules/.bin
+            export NIXPKGS_ALLOW_UNFREE=1
+          '';
+        };
+      lib.env =
+        {
+          pkgs,
+          extraDeps ? [ ],
+        }:
+        pkgs.callPackage ./env.nix { inherit extraDeps; };
+      lib.patch-playwright =
+        pkgs:
+        with pkgs;
+        writeShellScriptBin "patch-playwright" ''
+          path=''${1:-~/.cache/ms-playwright}
+          interpr=$(nix eval --raw 'nixpkgs#glibc')/lib64/ld-linux-x86-64.so.2
+          rpath=${google-chrome.rpath}:${
+            lib.makeLibraryPath [
+              dbus-glib
+              xorg.libXt
+            ]
+          }
+          find $path/{chromium,firefox}-*/*/ -executable -type f | while read i; do
+            if ! [[ "$i" == *.so ]]; then
+                ${patchelf}/bin/patchelf --set-interpreter "$interpr" "$i" || true
+            fi
+            ${patchelf}/bin/patchelf --set-rpath "$rpath" "$i" || true
+          done
+          ${patchelf}/bin/patchelf --set-interpreter "$interpr" $path/ffmpeg-*/ffmpeg-linux
         '';
-      };
-      lib.env = { pkgs, extraDeps ? [ ] }: pkgs.callPackage ./env.nix { inherit extraDeps; };
-      lib.patch-playwright = pkgs: with pkgs; writeShellScriptBin "patch-playwright" ''
-        path=''${1:-~/.cache/ms-playwright}
-        interpr=$(nix eval --raw 'nixpkgs#glibc')/lib64/ld-linux-x86-64.so.2
-        rpath=${google-chrome.rpath}:${lib.makeLibraryPath [dbus-glib xorg.libXt]}
-        find $path/{chromium,firefox}-*/*/ -executable -type f | while read i; do
-          if ! [[ "$i" == *.so ]]; then
-              ${patchelf}/bin/patchelf --set-interpreter "$interpr" "$i" || true
-          fi
-          ${patchelf}/bin/patchelf --set-rpath "$rpath" "$i" || true
-        done
-        ${patchelf}/bin/patchelf --set-interpreter "$interpr" $path/ffmpeg-*/ffmpeg-linux
-      '';
       lib.playwrightEnv = pkgs: pkgs.callPackage ./env.nix { };
-      lib.podmanShell = { pkgs }:
+      lib.podmanShell =
+        { pkgs }:
         let
           podmanSetupScript =
             let
@@ -72,10 +100,13 @@
           '';
         };
     }
-    //
-    flake-utils.lib.eachDefaultSystem (system:
+    // flake-utils.lib.eachDefaultSystem (
+      system:
       let
-        pkgs = import nixpkgs { inherit system; config.allowUnfree = true; };
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
       in
       rec {
         devShell = self.lib.shell { inherit pkgs; };
