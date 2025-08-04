@@ -1,9 +1,9 @@
 name: Auto Approve Dependabot PRs
 
-on: 
+on:
   pull_request:
   workflow_call:
-  
+
 permissions:
   contents: write
   pull-requests: write
@@ -13,11 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v2.4.0
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Wait to start checks
+        run: |
+          echo "Waiting to start checks"; sleep 20
       - name: Approve PR
         run: gh pr review --approve "$PR_URL"
         env:
