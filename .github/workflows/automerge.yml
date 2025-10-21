@@ -8,6 +8,9 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  PR_URL: ${{ github.event.pull_request.html_url }}
+
 jobs:
   auto-approve-and-merge:
     runs-on: ubuntu-latest
