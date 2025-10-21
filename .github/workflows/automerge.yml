@@ -13,16 +13,30 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Wait to start checks
+      - name: Wait for PR checks to complete
         run: |
-          echo "Waiting to start checks"; sleep 20
-      - name: Approve PR
+          while true; do
+            checks=$(gh pr checks --json workflow,name,state "$PR_URL")
+            filtered_checks=$(echo "$checks" | jq -r '.[] | select(.workflow != "Auto Approve and Merge PRs")')
+            unfinished=$(echo "$filtered_checks" | jq -r 'select(.state != "SUCCESS" and .state != "SKIPPED") | .name + ": " + .state')
+            if [ -n "$unfinished" ]; then
+              echo "Checks still running or failed:"
+              echo "$unfinished"
+              sleep 10
+            else
+              passed=$(echo "$filtered_checks" | jq -r '.name + ": " + .state')
+              echo "All filtered checks passed:"
+              echo "$passed"
+              break
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enable auto-approve
         run: gh pr review --approve "$PR_URL"
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
           GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Enable auto-merge
         run: gh pr merge --auto --merge "$PR_URL"
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
           GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
