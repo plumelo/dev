@@ -17,6 +17,9 @@
           extraDeps ? [ ],
         }:
         pkgs.mkShell {
+          nativeBuildInputs = with pkgs; [
+            playwright-driver.browsers
+          ];
           buildInputs =
             with pkgs;
             [
@@ -31,6 +34,8 @@
           shellHook = ''
             export PATH=$PATH:node_modules/.bin
             export NIXPKGS_ALLOW_UNFREE=1
+            export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+            export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
           '';
         };
       lib.env =
