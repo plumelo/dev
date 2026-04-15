@@ -24,7 +24,7 @@
             with pkgs;
             [
               nodejs_24
-              nodejs_24.pkgs.typescript-language-server
+              typescript-language-server
               ripgrep
               git
               git-lfs
