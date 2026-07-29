@@ -1,6 +1,10 @@
 name: NodeJS CI
 on:
   workflow_call:
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
 jobs:
   ci:
     runs-on: ubuntu-latest
@@ -36,5 +40,4 @@ jobs:
         if: success()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUSKY: 0
