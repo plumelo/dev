@@ -40,16 +40,16 @@ jobs:
               sleep 10
               continue
             fi
-            failed=$(echo "$filtered" | jq -r '.[] | select(.conclusion == "failure") | .name + ": failure"')
-            if [ -n "$failed" ]; then
-              echo "$failed"
-              exit 1
-            fi
             running=$(echo "$filtered" | jq -r '.[] | select(.status != "completed") | .name + ": " + .status')
             if [ -n "$running" ]; then
               echo "$running"
               sleep 10
             else
+              failed=$(echo "$filtered" | jq -r '.[] | select(.conclusion == "failure") | .name + ": failure"')
+              if [ -n "$failed" ]; then
+                echo "$failed"
+                exit 1
+              fi
               passed=$(echo "$filtered" | jq -r '.[] | .name + ": " + .conclusion')
               echo "$passed"
               break
