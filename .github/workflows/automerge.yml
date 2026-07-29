@@ -33,24 +33,25 @@ jobs:
           sha=$(gh pr view "$PR_URL" --json headRefOid -q .headRefOid)
           while true; do
             checks=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha/check-runs" --paginate -q \
-              '[.check_runs[] | {name: .name, status: .status, conclusion: .conclusion}]')
+              '[.check_runs[] | {name: .name, status: .status, conclusion: .conclusion, started: .started_at}]')
             filtered=$(echo "$checks" | jq '[.[] | select(.name | contains("auto-approve-and-merge") | not)]')
             if [ "$(echo "$filtered" | jq length)" -eq 0 ]; then
               echo "Waiting for checks to appear..."
               sleep 10
               continue
             fi
-            running=$(echo "$filtered" | jq -r '.[] | select(.status != "completed") | .name + ": " + .status')
+            latest=$(echo "$filtered" | jq 'group_by(.name) | map(max_by(.started))')
+            running=$(echo "$latest" | jq -r '.[] | select(.status != "completed") | .name + ": " + .status')
             if [ -n "$running" ]; then
               echo "$running"
               sleep 10
             else
-              failed=$(echo "$filtered" | jq -r '.[] | select(.conclusion == "failure") | .name + ": failure"')
+              failed=$(echo "$latest" | jq -r '.[] | select(.conclusion == "failure") | .name + ": failure"')
               if [ -n "$failed" ]; then
                 echo "$failed"
                 exit 1
               fi
-              passed=$(echo "$filtered" | jq -r '.[] | .name + ": " + .conclusion')
+              passed=$(echo "$latest" | jq -r '.[] | .name + ": " + .conclusion')
               echo "$passed"
               break
             fi
