@@ -1,12 +1,24 @@
-name: Auto Approve Dependabot PRs
+name: Auto Approve and Merge PRs
 
 on:
   pull_request:
   workflow_call:
+    inputs:
+      allowed-users:
+        type: string
+        default: '["dependabot[bot]"]'
+      merge-method:
+        type: string
+        default: '--squash'
+    secrets:
+      token:
+        required: false
 
 permissions:
   contents: write
   pull-requests: write
+  checks: read
+  actions: read
 
 env:
   PR_URL: ${{ github.event.pull_request.html_url }}
@@ -14,32 +26,42 @@ env:
 jobs:
   auto-approve-and-merge:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: contains(fromJSON(inputs.allowed-users || '["dependabot[bot]"]'), github.event.pull_request.user.login)
     steps:
       - name: Wait for PR checks to complete
         run: |
+          sha=$(gh pr view "$PR_URL" --json headRefOid -q .headRefOid)
           while true; do
-            checks=$(gh pr checks --json workflow,name,state "$PR_URL")
-            filtered_checks=$(echo "$checks" | jq -r '.[] | select(.workflow != "Auto Approve and Merge PRs")')
-            unfinished=$(echo "$filtered_checks" | jq -r 'select(.state != "SUCCESS" and .state != "SKIPPED") | .name + ": " + .state')
-            if [ -n "$unfinished" ]; then
-              echo "Checks still running or failed:"
-              echo "$unfinished"
+            checks=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha/check-runs" --paginate -q \
+              '[.check_runs[] | {name: .name, status: .status, conclusion: .conclusion}]')
+            filtered=$(echo "$checks" | jq '[.[] | select(.name | contains("auto-approve-and-merge") | not)]')
+            if [ "$(echo "$filtered" | jq length)" -eq 0 ]; then
+              echo "Waiting for checks to appear..."
+              sleep 10
+              continue
+            fi
+            failed=$(echo "$filtered" | jq -r '.[] | select(.conclusion == "failure") | .name + ": failure"')
+            if [ -n "$failed" ]; then
+              echo "$failed"
+              exit 1
+            fi
+            running=$(echo "$filtered" | jq -r '.[] | select(.status != "completed") | .name + ": " + .status')
+            if [ -n "$running" ]; then
+              echo "$running"
               sleep 10
             else
-              passed=$(echo "$filtered_checks" | jq -r '.name + ": " + .state')
-              echo "All filtered checks passed:"
+              passed=$(echo "$filtered" | jq -r '.[] | .name + ": " + .conclusion')
               echo "$passed"
               break
             fi
           done
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.token || github.token }}
       - name: Enable auto-approve
         run: gh pr review --approve "$PR_URL"
         env:
-          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GH_TOKEN: ${{ secrets.token || github.token }}
       - name: Enable auto-merge
-        run: gh pr merge --auto --squash "$PR_URL"
+        run: gh pr merge --auto ${{ inputs.merge-method }} "$PR_URL"
         env:
-          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GH_TOKEN: ${{ secrets.token || github.token }}
