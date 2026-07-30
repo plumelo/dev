@@ -58,11 +58,29 @@ jobs:
           done
         env:
           GH_TOKEN: ${{ secrets.token || github.token }}
-      - name: Enable auto-approve
-        run: gh pr review --approve "$PR_URL"
+      - name: Approve PR
+        run: |
+          for i in 1 2 3; do
+            if gh pr review --approve "$PR_URL"; then
+              exit 0
+            fi
+            echo "Approve attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          echo "All approve attempts failed"
+          exit 1
         env:
           GH_TOKEN: ${{ secrets.token || github.token }}
       - name: Enable auto-merge
-        run: gh pr merge --auto ${{ inputs.merge-method }} "$PR_URL"
+        run: |
+          for i in 1 2 3; do
+            if gh pr merge --auto ${{ inputs.merge-method }} "$PR_URL"; then
+              exit 0
+            fi
+            echo "Auto-merge attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
+          echo "All auto-merge attempts failed"
+          exit 1
         env:
           GH_TOKEN: ${{ secrets.token || github.token }}
