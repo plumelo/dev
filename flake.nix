@@ -23,7 +23,7 @@
           buildInputs =
             with pkgs;
             [
-              nodejs_24
+              nodejs_26
               typescript-language-server
               ripgrep
               git
